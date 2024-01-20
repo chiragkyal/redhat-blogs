@@ -32,31 +32,46 @@ To begin, we'll deploy OpenShift Container Platform on IBM Power® Virtual Serve
 ### Create IBM Power VS workspace
 1. Login to IBM Cloud
 ```shell!
-ibmcloud login --sso
+$ ibmcloud login --sso
 ```
-2. Create a new resource group
+
+
+2. Export IBM Cloud API Key
+
+If you do not possess an API Key, refer to [this document](https://cloud.ibm.com/docs/account?topic=account-userapikey&interface=ui) for guidance on creating one.
+```shell!
+$ export IBMCLOUD_API_KEY=<api-key>
+```
+
+
+
+
+
+3. Create a new resource group
 
 Execute the following command to create a resource group with the name `sandbox-rg`. Feel free to choose a different name if desired. After creating the resource group, export its ID for use in the subsequent steps.
 ```shell!
-ibmcloud resource group-create sandbox-rg
+$ ibmcloud resource group-create sandbox-rg
 ```
 The `ibmcloud resource groups` command can be helpful to get the ID.
-```
-export RESOURCE_GROUP_ID=<abcdefgh1234redhtlksegegj>
+```shell!
+$ export RESOURCE_GROUP_ID=<resource-group-id>
 ```
 
-3. Install or update the `power-iaas` CLI plug-in to interact with the Power Virtual Server.
+
+4. Install or update the `power-iaas` CLI plug-in to interact with the Power Virtual Server.
 
 ```shell!
-ibmcloud plugin install power-iaas
+$ ibmcloud plugin install power-iaas
 ```
 
-4. Create Power Server Workspace
+
+5. Create Power Server Workspace
 
 ```shell!
-export WORKSPACE_NAME=sandbox-vs-ws
+$ export WORKSPACE_NAME=sandbox-vs-ws
 
-export DATACENTER=dal10
+$ export DATACENTER=dal10
 ```
 > `WORKSPACE_NAME` : The virtual server workspace instance name.
 > 
@@ -65,20 +80,80 @@ export DATACENTER=dal10
 
 Now create it!
 ```shell!
-ibmcloud pi workspace-create $WORKSPACE_NAME --datacenter $DATACENTER --group $RESOURCE_GROUP_ID --plan public
+$ ibmcloud pi workspace-create $WORKSPACE_NAME --datacenter $DATACENTER --group $RESOURCE_GROUP_ID --plan public
 ```
 
 After creating the workspace, save its GUID as `WORKSPACE_ID`. Utilize the `ibmcloud pi workspaces` command for assistance.
 ```shell!
-export WORKSPACE_ID=<abcdef-12ed-345g-qwerty-cscwk4353dcd>
+$ export WORKSPACE_ID=<workspace-id>
 ```
 
 
 
+### Download ccoctl, installer and oc utilities
+
+To install the OpenShift cluster, we'll need to download the following utilities:
+
+- Cloud Credential Operator (CCO) utility (`ccoctl`): Used for managing cloud credentials externally from the cluster.
+- OpenShift installation program (`openshift-install`): This tool is essential for creating cluster components.
+- OpenShift command-line tool (`oc`): Enables interaction with the created cluster from the command line (CLI).
+
+
+>Note: If your host machine is of type `x86_64`, proceed with the provided instructions. If your host operating system and architecture are different, visit the [Infrastructure Provider for Power VS](https://console.redhat.com/openshift/install/powervs/installer-provisioned) page to download the programs compatible with your setup.
+
+1. Create an `assets` folder to organize and store all necessary files.
+```shell!
+$ mkdir ~/assets && cd ~/assets
+```
 
 
 
+2. Download and extract `ccoctl` binary
+```shell!
+$ curl -O https://mirror.openshift.com/pub/openshift-v4/amd64/clients/ocp/stable/ccoctl-linux.tar.gz
+```
+```shell!
+$ tar -xvf ./ccoctl-linux.tar.gz && rm ./ccoctl-linux.tar.gz
+```
 
+
+
+3. Download and extract  `openshift-install`  binary
+```shell!
+$ curl -O https://mirror.openshift.com/pub/openshift-v4/ppc64le/clients/ocp/stable/openshift-install-linux-amd64.tar.gz
+```
+```shell!
+$ tar -xvf ./openshift-install-linux-amd64.tar.gz && rm ./openshift-install-linux-amd64.tar.gz
+```
+
+
+
+4. Download and extract `oc` binary
+```shell!
+$ curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz
+```
+```shell!
+$ tar -xvf ./openshift-client-linux.tar.gz && rm ./openshift-client-linux.tar.gz
+```
+
+
+
+5. Once all downloads are complete, ensure that the `assets` directory contains four binaries. You may also use the `--help` command to verify compatibility with your system for each binary.
+
+```shell!
+$ ls
+ccoctl  kubectl  oc  openshift-install
+$ ./ccoctl --help
+....
+$ ./openshift-install --help
+...
+```
+
+### Create and update cluster installation config file
+
+**Prerequisites**
+
+* 
 
 
 
