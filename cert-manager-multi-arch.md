@@ -51,7 +51,9 @@ $ export IBMCLOUD_API_KEY=<api-key>
 
 Execute the following command to create a resource group with the name `sandbox-rg`. Feel free to choose a different name if desired. After creating the resource group, export its ID for use in the subsequent steps.
 ```shell!
-$ ibmcloud resource group-create sandbox-rg
+$ export RESOURCE_GROUP=sandbox-rg
+
+$ ibmcloud resource group-create $RESOURCE_GROUP
 ```
 The `ibmcloud resource groups` command can be helpful to get the ID.
 ```shell!
@@ -149,16 +151,133 @@ $ ./openshift-install --help
 ...
 ```
 
-### Create and update cluster installation config file
+### Create cluster installation manifests
 
 **Prerequisites**
 
-* 
+* [SSH key pair for cluster node access](https://docs.openshift.com/container-platform/4.14/installing/installing_ibm_powervs/installing-ibm-power-vs-customizations.html#ssh-agent-using_installing-ibm-power-vs-customizations)
+* [Red Hat OpenShift Pull secret](https://console.redhat.com/openshift/install/pull-secret)
+
+
+1. Create `cluster-assets` directory inside `assets` directory to store the files required for cluster installation.
+
+```shell!
+$ mkdir cluster-assets
+```
+
+2. Generate the configuration file
+
+```shell!
+$ ./openshift-install create install-config --dir ./cluster-assets
+```
+
+Upon executing this command, provide the following information when prompted
+
+```shell
+./openshift-install create install-config --dir ./cluster-assets
+
+? SSH Public Key /home/sandbox/.ssh/id_rsa.pub                           <your ssh pub key>
+? Platform powervs                                                       <select powervs>
+? IBM Cloud User ID abc@example.com                                      <your ibm cloud id>
+? Region dal                                                             <power vs workspace region>
+? Zone dal10                                                             <power vs workspace zone : echo $DATACENTER>
+? Service Instance abcd123-efgh456-qwer-sdf-864gsj123                    <power vs workspace guid : echo $WORKSPACE_ID>
+? Resource Group sandbox-rg                                              <power vs workspace resource group : echo $RESOURCE_GROUP>
+? Base Domain example.com                                                <the base domain to deploy the cluster to>
+? Cluster Name sandbox-cluster                                           <your cluster name>
+? Pull Secret *********                                                  <your openshift pull secret> 
+```
+
+After execution, the installation program will store the configuration in 
+`./cluster-assets/install-config.yaml` file.
+
+You can view the contents by running `cat ./cluster-assets/install-config.yaml`, which will resemble like:
+
+```yaml!
+additionalTrustBundlePolicy: Proxyonly
+apiVersion: v1
+baseDomain: example.com
+compute:
+- architecture: ppc64le
+  hyperthreading: Enabled
+  name: worker
+  platform: {}
+  replicas: 3
+controlPlane:
+  architecture: ppc64le
+  hyperthreading: Enabled
+  name: master
+  platform: {}
+  replicas: 3
+credentialsMode: Manual
+metadata:
+  creationTimestamp: null
+  name: sandbox-cluster
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: 192.168.18.0/24
+  networkType: OVNKubernetes
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  powervs:
+    powervsResourceGroup: sandbox-rg
+    region: dal
+    serviceInstanceID: abcd123-efgh456-qwer-sdf-864gsj123
+    userID: IBMid-1234abcd
+    zone: dal10
+publish: External
+pullSecret: '{"auths": ...}'
+sshKey: ssh-ed25519 AAAA...
+```
 
 
 
+By using this configuration, a cluster with 3 master and 3 worker nodes will be generated. If needed, feel free to customize the `install-config.yaml` file according to your requirements.
 
----
+
+4. Generate the installation manifests files
+
+And now we'll consume the previously created config file to generate the manifests files.
+
+```shell!
+$ ./openshift-install create manifests --dir ./cluster-assets
+```
+
+You will notice several files have been generated within `./cluster-assets` directory, and all will be utilized during the cluster installation. I'm not going into detailed explanations of each file's usage at this point.
+
+
+
+### Identity and access management
+
+Next in the cluster installation process is providing IAM roles for IBM Cloud resources, using the `ccoctl` tool.
+
+
+1. Create `cco-assets` directory inside `assets` directory to store `CredentialsRequest` custom resources (CRs)
+
+```shell!
+$ mkdir cco-assets
+```
+
+2. Get your OpenShift release image from the installer binary
+
+```shell!
+$ RELEASE_IMAGE=$(./openshift-install version | awk '/release image/ {print $3}')
+```
+
+3.
+
+```
+$ export INSTALL_CONFIG= manifest is created, you won't get config file
+```
+
+----
+
+
+
 
 
 
