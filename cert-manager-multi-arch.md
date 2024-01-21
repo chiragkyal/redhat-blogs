@@ -25,7 +25,9 @@ So, let's begin!
 
 
 ## Deploy OpenShift cluster on IBM Power VS
-Umm! lots of theory. Now let's dive into practical implementation.
+~~Umm! lots of theory. Now let's dive into practical implementation.~~
+
+Enough theory! Let's jump into hands-on practical implementation.
 
 To begin, we'll deploy OpenShift Container Platform on IBM Power® Virtual Server (VS) using installer-provisioned infrastructure. It's essential to first review the [prerequisite documentation](https://docs.openshift.com/container-platform/4.14/installing/installing_ibm_powervs/preparing-to-install-on-ibm-power-vs.html), which includes configuring your IBM Cloud account and other necessary utilities.
 
@@ -268,34 +270,87 @@ $ mkdir cco-assets
 $ RELEASE_IMAGE=$(./openshift-install version | awk '/release image/ {print $3}')
 ```
 
-3.
+3. Now, run the following command to extract all `CredentialsRequest` CRs from the `RELEASE_IMAGE` and store them inside `cco-assets` directory.
 
+```shell!
+$ ./oc adm release extract --cloud=powervs --credentials-requests $RELEASE_IMAGE --to ./cco-assets
 ```
-$ export INSTALL_CONFIG= manifest is created, you won't get config file
+
+4. Upon extracting all CRs, we'll utilize `ccoctl` to create service ID API Keys for each `CredentialsRequest` with designated policies. Subsequently, this process will generate YAML files of secrets inside the manifests directory, granting essential identity and access management for your `sandbox-cluster`.
+
+
+```shell!
+$ ./ccoctl ibmcloud create-service-id --credentials-requests-dir ./cco-assets --name sandbox-cluster --output-dir ./cluster-assets
 ```
 
-----
+Verify that the necessary YAML files have been saved in `cluster-assets/manifests` directory. Sample output:
+
+
+```shell
+Saved credentials configuration to: cluster-assets/manifests/openshift-cloud-controller-manager-ibm-cloud-credentials-credentials.yaml
+Saved credentials configuration to: cluster-assets/manifests/openshift-machine-api-powervs-credentials-credentials.yaml
+Saved credentials configuration to: cluster-assets/manifests/openshift-image-registry-installer-cloud-credentials-credentials.yaml
+Saved credentials configuration to: cluster-assets/manifests/openshift-ingress-operator-cloud-credentials-credentials.yaml
+Saved credentials configuration to: cluster-assets/manifests/openshift-cluster-csi-drivers-ibm-powervs-cloud-credentials-credentials.yaml
+```
+
+These secrets, along with other manifest files, will be applied during cluster creation, ensuring proper access to the required resources.
+
+### Deploy the cluster
+
+Congratulations on successfully following these steps! Now, just run the command, sit back, and take a moment to relax. Your cluster creation process will be underway, and soon you'll have your OpenShift cluster ready, running on IBM Power Virtual Server. :tada:  :relieved: 
 
 
 
+```shell!
+$ ./openshift-install create cluster --dir ./cluster-assets
+```
 
-
-
-
-
+After a successful cluster deployment, instructions will be displayed for accessing your cluster, offering a web console link, `kubeadmin` user credentials, and the `kubeconfig` file path. Any of these options can be utilized to access the cluster. :100: 
 
 
 ## Install cert-manager on IBM Power
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Certificate Management
 ### How to change the default ingress controller 
+## Destroy cluster
 
-## Reference
+It's always good practice to cleanup things, so destroy your cluster
+```shell!
+$ ./openshift-install destroy cluster --dir ./cluster-assets
+```
+
+Awesome! Hope you have found this article useful. Let me know if you've any questions in the comments. See you in the next one! Happy coding :) 🚀🌟 
+
+And yeah, as promised few useful links are down below 
+
+## Useful links
 - https://docs.openshift.com/container-platform/4.14/installing/installing_ibm_powervs/preparing-to-install-on-ibm-power-vs.html
 - 
 
 ---
 ## EXTRA
+
+
+Fantastic job so far! Now, brace yourself for the exciting finale - just run the command, sit back, and witness the magic unfold! Your cluster creation is moments away! 🚀🌟 
+
+
 In this latest update, the cert-manager Operator for Red Hat OpenShift has undergone an expansion in its scope. Previously confined to the OpenShift Container Platform solely on AMD64 architecture, it now encompasses broader support. This includes the management of certificates on OpenShift Container Platform instances running on IBM Z® (s390x), IBM Power® (ppc64le), and ARM64 architectures.
 
 
