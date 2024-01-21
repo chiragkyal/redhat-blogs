@@ -195,7 +195,7 @@ After execution, the installation program will store the configuration in
 
 You can view the contents by running `cat ./cluster-assets/install-config.yaml`, which will resemble like:
 
-```yaml!
+```yaml
 additionalTrustBundlePolicy: Proxyonly
 apiVersion: v1
 baseDomain: example.com
