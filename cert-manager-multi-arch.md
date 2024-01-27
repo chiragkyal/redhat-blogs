@@ -20,17 +20,61 @@ So, let's begin!
 
 
 
-## Multi-arch container image
+## Multi-architecture container image
 
-### How to create one?
-### Show manifest for cert-manager
+### What is it?
+Multi-architecture container images represent a containerization strategy where a single container image is crafted to run seamlessly across various CPU architectures (e.g. x86, ARM, s390x, RISC-V) and sometimes operating systems (e.g., Linux, Windows). A common tag is used for the image, but the container runtime automatically selects the appropriate variant based on the target platform where you want to run the container, using manifests  that reference individual image variants for different platforms.
+
+By using this approach, developers can deploy applications on a variety of hardware platforms without the hassle of reconstructing or handling individual images for each architecture, with increased efficiency and flexibility. 
+
+### How to create?
+Now, creating a multi-arch container image has become straightforward using both [Docker](https://docs.docker.com/build/building/multi-platform/) and [Podman](https://docs.podman.io/en/stable/markdown/podman-build.1.html). Like this:
+
+```shell
+docker buildx build \
+--platform linux/amd64,linux/arm64 \
+-t <registry>/<image>:<tag> \
+--push .
+```
+
+That's all it takes. With a single command, you'll have image capable of running on both `amd64` and `arm64`, and that too from a single tag. Isn't that cool? :sunglasses: 
+
+### How to verify?
+
+To verify whether an image is multi-architecture or not, you can utilize the `docker|podman manifest inspect` command which provides details about the image, including size, digest, and most importantly, supported platforms.
+
+Let's check the supported platforms for the cert-manager operator's [bundle image ](https://catalog.redhat.com/software/containers/cert-manager/cert-manager-operator-bundle/61a60be7bfd4a5234d596293?architecture=amd64&image=659c4d0b96dddbdb901bacb2)`v1.13.0-9`
+
+```shell
+podman manifest inspect registry.redhat.io/cert-manager/cert-manager-operator-bundle:v1.13.0-9 | jq -r '.manifests[].platform' 
+```
+Sample output: 
+```json
+{
+  "architecture": "amd64",
+  "os": "linux"
+}
+{
+  "architecture": "arm64",
+  "os": "linux"
+}
+{
+  "architecture": "ppc64le",
+  "os": "linux"
+}
+{
+  "architecture": "s390x",
+  "os": "linux"
+}
+```
+As evident, the image is compatible with `amd64`, `arm64`, `ppc64le` and `s390x` architectures, making it capable of running on these platforms.
 
 
 
 
 ## Deploy OpenShift cluster on IBM Power VS
 
-Enough theory! Let's jump into hands-on practical implementation.
+Enough theory! Let's jump into some hands-on activities.
 
 To begin, we'll deploy OpenShift Container Platform on IBM Power® Virtual Server (VS) using installer-provisioned infrastructure. It's essential to first review the [prerequisite documentation](https://docs.openshift.com/container-platform/4.14/installing/installing_ibm_powervs/preparing-to-install-on-ibm-power-vs.html), which includes configuring your IBM Cloud account and other necessary utilities.
 
@@ -465,6 +509,9 @@ Well done! :clap:  The `openshift-cert-manager-operator` is now successfully ins
 ## Destroy cluster
 
 It's always good practice to cleanup things, so destroy your cluster
+
+
+If you ever wish to destroy your cluster, use the following command
 ```shell
 $ ./openshift-install destroy cluster --dir ./cluster-assets
 ```
@@ -637,9 +684,3 @@ a,
 }
 
 </style>
-
-
-
-
-
-
