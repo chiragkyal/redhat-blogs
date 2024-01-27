@@ -4,7 +4,11 @@
 
 
 ## Intoduction
-The [cert-manager](https://docs.openshift.com/container-platform/4.14/security/cert_manager_operator/index.html) Operator for Red Hat OpenShift provides a secure and efficient solution for SSL/TLS certificate management in OpenShift Container Platform clusters, by introducing certificates and certificate issuers as primary resources in the Kubernetes API.  This _**'certificates as a service'**_ model seamlessly integrates with external certificate authorities, automating the entire certificate lifecycle, from provisioning to renewal, ensuring validity and timely updates.
+
+Kubernetes thrives on secure communication, but manually managing SSL/TLS certificates is a tangled mess and error-prone process, leading to outages, security vulnerabilities, and operational overhead.
+
+
+The [cert-manager](https://docs.openshift.com/container-platform/4.14/security/cert_manager_operator/index.html) Operator for Red Hat OpenShift provides a secure and efficient solution for TLS certificate management in OpenShift Container Platform clusters, by introducing certificates and certificate issuers as primary resources in the Kubernetes API.  This _**'certificates as a service'**_ model seamlessly integrates with external certificate authorities, automating the entire certificate lifecycle, from provisioning to renewal, ensuring validity and timely updates.
 
 Now, with the latest update, the cert-manager Operator for Red Hat OpenShift `v1.13.0` has undergone an expansion in its scope. Formerly confined to supporting solely on `AMD64` architecture, it now includes extended support for managing certificates on OpenShift across multiple architectures, including IBM Z® (`s390x`), IBM Power® (`ppc64le`), and `ARM64`. 
 
@@ -25,7 +29,6 @@ So, let's begin!
 
 
 ## Deploy OpenShift cluster on IBM Power VS
-~~Umm! lots of theory. Now let's dive into practical implementation.~~
 
 Enough theory! Let's jump into hands-on practical implementation.
 
@@ -309,10 +312,135 @@ $ ./openshift-install create cluster --dir ./cluster-assets
 After a successful cluster deployment, instructions will be displayed for accessing your cluster, offering a web console link, `kubeadmin` user credentials, and the `kubeconfig` file path. Any of these options can be utilized to access the cluster. :100: 
 
 
-## Install cert-manager on IBM Power
+## Install cert-manager on IBM Power VS
+
+Let's kick things up a notch! :computer: :running: 
+
+We're now all set to install the cert-manager Operator for Red Hat OpenShift on our cluster. While the [installation documentation ](https://docs.openshift.com/container-platform/4.14/security/cert_manager_operator/cert-manager-operator-install.html) primarily outlines the steps using the OpenShift web console, this article will guide you through the CLI installation, with some [Operator Lifecycle Manager(OLM)](https://olm.operatorframework.io/) explanations. Pick your flavor, and feel free to choose the method that best suits your use case and preferences, as both would lead to the same. :slightly_smiling_face: 
+
+Ready to get things rolling?
+
+1. Export `KUBECONFIG` or use `oc login` to access your cluster. 
+```shell
+export KUBECONFIG=<path-to-kubeconfig>
+```
+
+2. In OpenShift, a Catalog Source serves as a carefully curated repository of operators, akin to an app store. It provides a comprehensive listing of operators along with their descriptions, versions, and compatibility information. By default, the `redhat-operators` Catalog Source is included with the cluster in `openshift-marketplace` namespace, featuring the presence of the `openshift-cert-manager-operator`.
+
+```shell
+oc get catalogsources redhat-operators -n openshift-marketplace
+```
+
+
+3. Within OLM, the `PackageManifest` is your operator's info card. It includes details such as the package name, available channels, source repository (Catalog Source), install modes, version details etc. which simplifies operator installation within your OpenShift cluster. Let's check the details for `openshift-cert-manager-operator` 
+
+
+```shell
+oc describe packagemanifest openshift-cert-manager-operator -n openshift-marketplace
+```
+
+Have you observed the labels? They provide information about the supported architectures and the source catalog.
+```shell
+oc get packagemanifest openshift-cert-manager-operator -n openshift-marketplace -o json | jq .metadata.labels
+```
+
+```json
+{
+  "catalog": "redhat-operators",
+  "catalog-namespace": "openshift-marketplace",
+  "hypershift.openshift.io/managed": "true",
+  "operatorframework.io/arch.amd64": "supported",
+  "operatorframework.io/arch.arm64": "supported",
+  "operatorframework.io/arch.ppc64le": "supported",
+  "operatorframework.io/arch.s390x": "supported",
+  "operatorframework.io/os.linux": "supported",
+  "provider": "Red Hat",
+  "provider-url": ""
+}
+
+```
+
+Take a look at the defaultChannel.
+```
+oc get packagemanifest openshift-cert-manager-operator -n openshift-marketplace -o json | jq .status.defaultChannel
+```
+
+```json
+"stable-v1"
+```
+
+Make a note of these informations as we'll use them when creating the `Subscription`.
+
+4. Create a new project `cert-manager-operator`. This will be the operator namespace.
+
+```shell
+oc new-project cert-manager-operator
+```
+
+5. Next, we'll create the `OperatorGroup` to help OLM specify the target namespaces where the operator should be deployed and watch for it's resources.
+
+
+```shell
+oc create -f - <<EOF 
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-cert-manager-operator
+  namespace: cert-manager-operator
+spec:
+  targetNamespaces:
+  - "cert-manager-operator"
+EOF
+```
+
+6. Finally, create a `Subscription` to install your operator. Ensure that the information in the `spec` is sourced from the `PackageManifest` as needed.
+ 
+```shell
+oc create -f - <<EOF
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: openshift-cert-manager-operator
+  namespace: cert-manager-operator
+spec:
+  channel: stable-v1
+  name: openshift-cert-manager-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+  startingCSV: cert-manager-operator.v1.13.0
+EOF
+```
 
 
 
+7. You may do a quick verification by following the commands and sample outputs:
+
+```shell
+oc get subscription -n cert-manager-operator
+NAME                              PACKAGE                           SOURCE             CHANNEL
+openshift-cert-manager-operator   openshift-cert-manager-operator   redhat-operators   stable-v1
+
+
+oc get csv -n cert-manager-operator
+NAME                            DISPLAY                                       VERSION   REPLACES                        PHASE
+cert-manager-operator.v1.13.0   cert-manager Operator for Red Hat OpenShift   1.13.0    cert-manager-operator.v1.12.1   Succeeded
+
+
+oc get pods -n cert-manager-operator
+NAME                                                        READY   STATUS    RESTARTS   AGE
+cert-manager-operator-controller-manager-695b4d46cb-r4hld   2/2     Running   0          7m4s
+
+
+oc get pods -n cert-manager
+NAME                                       READY   STATUS    RESTARTS   AGE
+cert-manager-58b7f649c4-dp6l4              1/1     Running   0          7m1s
+cert-manager-cainjector-5565b8f897-gx25h   1/1     Running   0          7m37s
+cert-manager-webhook-9bc98cbdd-f972x       1/1     Running   0          7m40s
+```
+
+
+Well done! :clap:  The `openshift-cert-manager-operator` is now successfully installed in your cluster, and is prepared to handle certificate services. :rocket: 
 
 
 
@@ -329,6 +457,11 @@ After a successful cluster deployment, instructions will be displayed for access
 
 ## Certificate Management
 ### How to change the default ingress controller 
+
+
+
+
+
 ## Destroy cluster
 
 It's always good practice to cleanup things, so destroy your cluster
