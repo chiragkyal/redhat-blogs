@@ -368,15 +368,16 @@ Ready to get things rolling?
 ```shell
 export KUBECONFIG=<path-to-kubeconfig>
 ```
+### Review OLM resources
 
-2. In OpenShift, a Catalog Source serves as a carefully curated repository of operators, akin to an app store. It provides a comprehensive listing of operators along with their descriptions, versions, and compatibility information. By default, the `redhat-operators` Catalog Source is included with the cluster in `openshift-marketplace` namespace, featuring the presence of the `openshift-cert-manager-operator`.
+1. In OpenShift, a Catalog Source serves as a carefully curated repository of operators, akin to an app store. It provides a comprehensive listing of operators along with their descriptions, versions, and compatibility information. By default, the `redhat-operators` Catalog Source is included with the cluster in `openshift-marketplace` namespace, featuring the presence of the `openshift-cert-manager-operator`.
 
 ```shell
 oc get catalogsources redhat-operators -n openshift-marketplace
 ```
 
 
-3. Within OLM, the `PackageManifest` is your operator's info card. It includes details such as the package name, available channels, source repository (Catalog Source), install modes, version details etc. which simplifies operator installation within your OpenShift cluster. Let's check the details for `openshift-cert-manager-operator` 
+2. Within OLM, the `PackageManifest` is your operator's info card. It includes details such as the package name, available channels, source repository (Catalog Source), install modes, version details etc. which simplifies operator installation within your OpenShift cluster. Let's check the details for `openshift-cert-manager-operator` 
 
 
 ```shell
@@ -415,13 +416,15 @@ oc get packagemanifest openshift-cert-manager-operator -n openshift-marketplace 
 
 Make a note of these informations as we'll use them when creating the `Subscription`.
 
-4. Create a new project `cert-manager-operator`. This will be the operator namespace.
+### Operator Installation with CLI
+
+1. Create a new project `cert-manager-operator`. This will be the operator namespace.
 
 ```shell
 oc new-project cert-manager-operator
 ```
 
-5. Next, we'll create the `OperatorGroup` to help OLM specify the target namespaces where the operator should be deployed and watch for it's resources.
+2. Next, we'll create the `OperatorGroup` to help OLM specify the target namespaces where the operator should be deployed and watch for it's resources.
 
 
 ```shell
@@ -437,7 +440,7 @@ spec:
 EOF
 ```
 
-6. Finally, create a `Subscription` to install your operator. Ensure that the information in the `spec` is sourced from the `PackageManifest` as needed.
+3. Finally, create a `Subscription` to install your operator. Ensure that the information in the `spec` is sourced from the `PackageManifest` as needed.
  
 ```shell
 oc create -f - <<EOF
@@ -458,7 +461,7 @@ EOF
 
 
 
-7. You may do a quick verification by following the commands and sample outputs:
+4. You may do a quick verification by following the commands and sample outputs:
 
 ```shell
 oc get subscription -n cert-manager-operator
@@ -549,32 +552,6 @@ Reference
 Other Titles
 - cert-manager Operator for Red Hat OpenShift supports multi-architecture systems
 - Yes, cert-manager Operator for Red Hat OpenShift supports multi-architecture systems
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
