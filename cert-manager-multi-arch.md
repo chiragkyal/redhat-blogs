@@ -12,6 +12,10 @@ The [cert-manager](https://docs.openshift.com/container-platform/4.14/security/c
 
 Now, with the latest update, the cert-manager Operator for Red Hat OpenShift `v1.13.0` has undergone an expansion in its scope. Formerly confined to supporting solely on `AMD64` architecture, it now includes extended support for managing certificates on OpenShift across multiple architectures, including IBM Z® (`s390x`), IBM Power® (`ppc64le`), and `ARM64`. 
 
+![002-multi-arch+openshift+cm](https://hackmd.io/_uploads/HJmEBAQ9T.png)
+Figure: <TODO></TODO>
+
+
 In this article, I'll briefly explore multi-arch container images before delving into the process of setting up an OpenShift cluster on IBM Power®. I'll then proceed to the cert-manager Operator installation on Power VS and demonstrate its use in certificate management. 
 
 It's worth noting that comparable steps can be applied to other supported architectures. **[TODO] I've provided links to relevant documents for further reference.**
@@ -27,6 +31,7 @@ Multi-architecture container images represent a containerization strategy where 
 
 By using this approach, developers can deploy applications on a variety of hardware platforms without the hassle of reconstructing or handling individual images for each architecture, with increased efficiency and flexibility. 
 
+
 ### How to create?
 Now, creating a multi-arch container image has become straightforward using both [Docker](https://docs.docker.com/build/building/multi-platform/) and [Podman](https://docs.podman.io/en/stable/markdown/podman-build.1.html). Like this:
 
@@ -38,6 +43,9 @@ docker buildx build \
 ```
 
 That's all it takes. With a single command, you'll have image capable of running on both `amd64` and `arm64`, and that too from a single tag. Isn't that cool? :sunglasses: 
+
+![multi-arch-image-draw](https://hackmd.io/_uploads/SyLwH979T.png)
+Figure: <TODO></TODO>
 
 ### How to verify?
 
