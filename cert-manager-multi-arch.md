@@ -13,6 +13,7 @@ The [cert-manager](https://docs.openshift.com/container-platform/4.14/security/c
 Now, with the latest update, the cert-manager Operator for Red Hat OpenShift `v1.13.0` has undergone an expansion in its scope. Formerly confined to supporting solely on `AMD64` architecture, it now includes extended support for managing certificates on OpenShift across multiple architectures, including IBM Z® (`s390x`), IBM Power® (`ppc64le`), and `ARM64`. 
 
 ![002-multi-arch+openshift+cm](assets/002-multi-arch+openshift+cm.png)
+
 Figure: <TODO></TODO>
 
 
