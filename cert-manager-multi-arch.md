@@ -12,9 +12,10 @@ The [cert-manager](https://docs.openshift.com/container-platform/4.14/security/c
 
 Now, with the latest update, the cert-manager Operator for Red Hat OpenShift `v1.13.0` has undergone an expansion in its scope. Formerly confined to supporting solely on `AMD64` architecture, it now includes extended support for managing certificates on OpenShift across multiple architectures, including IBM Z® (`s390x`), IBM Power® (`ppc64le`), and `ARM64`. 
 
-![002-multi-arch+openshift+cm](assets/002-multi-arch+openshift+cm.png)
-
-Figure: Figure description
+<p align="center">
+  <img src="assets/002-multi-arch+openshift+cm.png" alt>
+  <em>figure_caption</em>
+</p>
 
 
 In this article, I'll briefly explore multi-arch container images before delving into the process of setting up an OpenShift cluster on IBM Power®. I'll then proceed to the cert-manager Operator installation on Power VS and demonstrate its use in certificate management. 
@@ -45,8 +46,10 @@ docker buildx build \
 
 That's all it takes. With a single command, you'll have image capable of running on both `amd64` and `arm64`, and that too from a single tag. Isn't that cool? :sunglasses: 
 
-![multi-arch-image-draw](assets/001-multi-arch-image-generation.png)
-Figure: <TODO></TODO>
+<p align="center">
+  <img src="assets/001-multi-arch-image-generation.png" alt>
+  <em>figure_caption</em>
+</p>
 
 ### How to verify?
 
