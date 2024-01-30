@@ -14,7 +14,7 @@ Now, with the latest update, the cert-manager Operator for Red Hat OpenShift `v1
 
 ![002-multi-arch+openshift+cm](assets/002-multi-arch+openshift+cm.png)
 
-Figure: <TODO></TODO>
+Figure: Figure description
 
 
 In this article, I'll briefly explore multi-arch container images before delving into the process of setting up an OpenShift cluster on IBM Power®. I'll then proceed to the cert-manager Operator installation on Power VS and demonstrate its use in certificate management. 
