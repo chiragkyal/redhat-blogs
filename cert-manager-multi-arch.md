@@ -12,7 +12,7 @@ The [cert-manager](https://docs.openshift.com/container-platform/4.14/security/c
 
 Now, with the latest update, the cert-manager Operator for Red Hat OpenShift `v1.13.0` has undergone an expansion in its scope. Formerly confined to supporting solely on `AMD64` architecture, it now includes extended support for managing certificates on OpenShift across multiple architectures, including IBM Z® (`s390x`), IBM Power® (`ppc64le`), and `ARM64`. 
 
-![002-multi-arch+openshift+cm](https://hackmd.io/_uploads/HJmEBAQ9T.png)
+![002-multi-arch+openshift+cm](assets/002-multi-arch+openshift+cm.png)
 Figure: <TODO></TODO>
 
 
@@ -44,7 +44,7 @@ docker buildx build \
 
 That's all it takes. With a single command, you'll have image capable of running on both `amd64` and `arm64`, and that too from a single tag. Isn't that cool? :sunglasses: 
 
-![multi-arch-image-draw](https://hackmd.io/_uploads/SyLwH979T.png)
+![multi-arch-image-draw](assets/001-multi-arch-image-generation.png)
 Figure: <TODO></TODO>
 
 ### How to verify?
@@ -534,138 +534,3 @@ And yeah, as promised few useful links are down below
 
 ## Useful links
 - https://docs.openshift.com/container-platform/4.14/installing/installing_ibm_powervs/preparing-to-install-on-ibm-power-vs.html
-- 
-
----
-## EXTRA
-
-
-Fantastic job so far! Now, brace yourself for the exciting finale - just run the command, sit back, and witness the magic unfold! Your cluster creation is moments away! 🚀🌟 
-
-
-In this latest update, the cert-manager Operator for Red Hat OpenShift has undergone an expansion in its scope. Previously confined to the OpenShift Container Platform solely on AMD64 architecture, it now encompasses broader support. This includes the management of certificates on OpenShift Container Platform instances running on IBM Z® (s390x), IBM Power® (ppc64le), and ARM64 architectures.
-
-
-In this latest update, the cert-manager Operator for Red Hat OpenShift has broadened its capabilities. Initially confined to the OpenShift Container Platform on AMD64 architecture, it now extends its support to manage certificates on OpenShift Container Platform across diverse architectures, including IBM Z® (s390x), IBM Power® (ppc64le), and ARM64.
-
-
-In this latest update, the cert-manager Operator for Red Hat OpenShift has broadened its capabilities. Formerly confined to supporting the OpenShift Container Platform solely on AMD64 architecture, it now includes extended support for managing certificates on OpenShift Container Platform across multiple architectures, including IBM Z® (s390x), IBM Power® (ppc64le), and ARM64.
-
-Reference
-- https://docs.openshift.com/container-platform/4.13/security/cert_manager_operator/index.html
-- https://developers.redhat.com/articles/2022/07/19/secure-kubernetes-certificates-cert-manager-and-dekorate#
-- https://developers.redhat.com/articles/2023/10/25/how-openshift-cert-manager-simplifies-cluster-certificates
-- https://docs.openshift.com/container-platform/4.14/security/cert_manager_operator/cert-manager-operator-release-notes.html#cert-manager-operator-release-notes-1.13
-
-Other Titles
-- cert-manager Operator for Red Hat OpenShift supports multi-architecture systems
-- Yes, cert-manager Operator for Red Hat OpenShift supports multi-architecture systems
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
----------------------------------
-
-<style>
-
-html, body, .ui-content {
-    background-color: #333;
-    color: #ddd;
-}
-
-.markdown-body h1,
-.markdown-body h2,
-.markdown-body h3,
-.markdown-body h4,
-.markdown-body h5,
-.markdown-body h6 {
-    color: #ddd;
-}
-
-.markdown-body h1,
-.markdown-body h2 {
-    border-bottom-color: #ffffff69;
-}
-
-.markdown-body h1 .octicon-link,
-.markdown-body h2 .octicon-link,
-.markdown-body h3 .octicon-link,
-.markdown-body h4 .octicon-link,
-.markdown-body h5 .octicon-link,
-.markdown-body h6 .octicon-link {
-    color: #fff;
-}
-
-.markdown-body img {
-    background-color: transparent;
-}
-
-.ui-toc-dropdown .nav>.active:focus>a, .ui-toc-dropdown .nav>.active:hover>a, .ui-toc-dropdown .nav>.active>a {
-    color: white;
-    border-left: 2px solid white;
-}
-
-.expand-toggle:hover, 
-.expand-toggle:focus, 
-.back-to-top:hover, 
-.back-to-top:focus, 
-.go-to-bottom:hover, 
-.go-to-bottom:focus {
-    color: white;
-}
-
-
-.ui-toc-dropdown {
-    background-color: #333;
-}
-
-.ui-toc-label.btn {
-    background-color: #191919;
-    color: white;
-}
-
-.ui-toc-dropdown .nav>li>a:focus, 
-.ui-toc-dropdown .nav>li>a:hover {
-    color: white;
-    border-left: 1px solid white;
-}
-
-.markdown-body blockquote {
-    color: #bcbcbc;
-}
-
-.markdown-body table tr {
-    background-color: #5f5f5f;
-}
-
-.markdown-body table tr:nth-child(2n) {
-    background-color: #4f4f4f;
-}
-
-.markdown-body code,
-.markdown-body tt {
-    color: #eee;
-    background-color: rgba(230, 230, 230, 0.36);
-}
-
-a,
-.open-files-container li.selected a {
-    color: #5EB7E0;
-}
-
-</style>
