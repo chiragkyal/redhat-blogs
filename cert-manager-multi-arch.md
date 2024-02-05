@@ -1,4 +1,27 @@
-[toc]
+- [Manage certificates on OpenShift running on IBM Z®, IBM Power® and ARM64 architectures.](#manage-certificates-on-openshift-running-on-ibm-z-ibm-power-and-arm64-architectures)
+  - [Intoduction](#intoduction)
+  - [Multi-architecture container image](#multi-architecture-container-image)
+    - [What is it?](#what-is-it)
+    - [How to create?](#how-to-create)
+    - [How to verify?](#how-to-verify)
+  - [Deploy OpenShift cluster on IBM Power VS](#deploy-openshift-cluster-on-ibm-power-vs)
+    - [Create IBM Power VS workspace](#create-ibm-power-vs-workspace)
+    - [Download ccoctl, installer and oc utilities](#download-ccoctl-installer-and-oc-utilities)
+    - [Create cluster installation manifests](#create-cluster-installation-manifests)
+    - [Identity and access management](#identity-and-access-management)
+    - [Deploy the cluster](#deploy-the-cluster)
+  - [Install cert-manager on IBM Power VS](#install-cert-manager-on-ibm-power-vs)
+    - [Review OLM resources](#review-olm-resources)
+    - [Operator Installation with CLI](#operator-installation-with-cli)
+  - [Certificate Management](#certificate-management)
+    - [Create Self-signed CA Issuer](#create-self-signed-ca-issuer)
+    - [Issue Certificate](#issue-certificate)
+    - [Change ingress controller's default certificate](#change-ingress-controllers-default-certificate)
+    - [Replace the CA bundle certificate](#replace-the-ca-bundle-certificate)
+    - [See it in action](#see-it-in-action)
+  - [Wrap Up](#wrap-up)
+  - [Useful links](#useful-links)
+
 
 # Manage certificates on OpenShift running on IBM Z®, IBM Power® and ARM64 architectures.
 
