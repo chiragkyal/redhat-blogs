@@ -503,38 +503,193 @@ Well done! :clap:  The `openshift-cert-manager-operator` is now successfully ins
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 ## Certificate Management
-### How to change the default ingress controller 
 
+Having successfully installed the cert-manager Operator for Red Hat OpenShift, let's explore a practical scenario to leverage its capabilities.
 
+In this use case, we aim to integrate cert-manager with the cluster ingress operator. Typically, each ingress controller employs a default certificate for secure routes, unless a custom certificate is explicitly specified. Here, our objective is to utilize cert-manager to generate a custom certificate issued by a self-signed Certificate Authority (CA). Subsequently, we will proceed to update the default certificate of the ingress controller to use this newly generated certificate.
 
+Notably, you have the flexibility to employ other supported issuer types such as ACME, Vault, and Venafi if needed.
 
+### Create Self-signed CA Issuer
+The initial step involves configuring either an `Issuer` or `ClusterIssuer`. These entities function as resources that represent certificate authorities responsible for signing certificates when they receive signing requests. `Issuer` is specific to a namespace, while `ClusterIssuer` operate at the cluster level.
 
-## Destroy cluster
+Here we'll create a SelfSigned `ClusterIssuer`, issue a root `Certificate` and then use that root as a CA issuer.
 
-It's always good practice to cleanup things, so destroy your cluster
-
-
-If you ever wish to destroy your cluster, use the following command
-```shell
-$ ./openshift-install destroy cluster --dir ./cluster-assets
+```yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-cluster-issuer #----(1)
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: selfsigned-root-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: selfsigned-root-ca # Note this
+  secretName: root-ca-key-pair #----(2)
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-cluster-issuer # match (1)
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: ca-issuer
+spec:
+  ca:
+    secretName: root-ca-key-pair # match (2)
 ```
-TODO: Add a summary what you have covered in this article. 
 
-Awesome! Hope you have found this article useful. Let me know if you've any questions in the comments. See you in the next one! Happy coding :) 🚀🌟 
+Feel free to modify the resource names, and take note of the `commonName` for verification purposes. The root ca will be stored in the `root-ca-key-pair` secret within the `cert-manager` namespace by cert-manager operator.
 
-And yeah, as promised few useful links are down below 
+### Issue Certificate
+
+Cert-manager's `Certificate` resource facilitates automatic issuance, renewal, and storage of signed certificates, contingent on configured `Issuer` or `ClusterIssuer` resources. So, we will next create a `Certificate` using the above created CA `ClusterIssuer`, for the default ingress controller in `openshift-ingress` namespace.
+
+*Note:* `dnsNames`, `commonName` should be `"*.apps.<cluster-domain>"` for the certificate. For example : `"*.apps.sandbox-cluster.mydomain.example.com"`.
+
+You can use `oc whoami --show-server` command to get the correct cluster-domain.
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ingress-wildcard-cert
+  namespace: openshift-ingress
+spec:
+  isCA: false
+  commonName: "*.apps.<cluster-domain>" # change me
+  dnsNames:
+    - "apps.<cluster-domain>"           # change me
+    - "*.apps.<cluster-domain>"         # change me
+  usages:
+    - server auth
+  issuerRef:
+    kind: ClusterIssuer
+    name: ca-issuer
+  secretName: ingress-wildcard-tls
+```
+The relevant certificate will be created and stored in the `ingress-wildcard-tls` secret and this is the certificate which we all care about. :+1: 
+
+### Change ingress controller's default certificate
+
+Next, we'll update the `defaultCertificate` reference in the default `IngressController` CR by patching it to point to the new certificate secret.
+
+```shell!
+oc patch ingresscontroller.operator default \
+--type=merge -p \
+'{"spec":{"defaultCertificate": {"name": "ingress-wildcard-tls"}}}' \
+-n openshift-ingress-operator
+```
+
+
+Once the certificate is replaced, all applications, the web console and CLI, will be secured with the specified certificate for encryption.
+
+### Replace the CA bundle certificate
+
+
+OpenShift's Proxy certificates enable custom Certificate Authorities (CAs) for secure egress connections, through the `trustedCA` field and a dedicated proxy validator in the `openshift-config-managed` namespace. You can refer the [documentation](https://docs.openshift.com/container-platform/4.14/security/certificates/updating-ca-bundle.html) for understanding CA bundle certificate.
+
+Now, lets do the replacement
+
+1. Extract the `ca.crt` from the `ingress-wildcard-tls` secret.
+```shell
+oc extract secret/ingress-wildcard-tls -n openshift-ingress
+```
+
+
+2. Generate a config-map to encapsulate the root CA certificate utilized for signing the wildcard certificate.
+
+```shell
+oc create configmap issued-ca-bundle \
+--from-file=ca-bundle.crt=./ca.crt \
+-n openshift-config
+```
+
+3. Use the created config map and update the proxy configuration across the entire cluster.
+
+```shell
+oc patch proxy cluster \
+ --type=merge \
+ --patch='{"spec":{"trustedCA":{"name":"issued-ca-bundle"}}}'
+```
+
+
+Wait a bit for the changes to propagate through your cluster, and ensure its health using fundamental commands like:
+```shell
+oc get nodes
+oc get pods --all-namespaces
+oc get clusteroperators
+```
+
+Fantastic! Your cluster is now fully configured to fortify all connections with the bespoke custom certificate.
+
+
+### See it in action
+Now, verify if your connections are indeed being served by the certificates.
+
+> Note: chage the `<cluster-domain>` with the base domain name for your cluster.
+
+1. 
+```shell
+echo Q | openssl s_client -connect console-openshift-console.apps.<cluster-domain>:443 -showcerts 2>/dev/null | openssl x509 -noout -subject -issuer -enddate
+```
+
+Sample result:
+```shell
+subject=CN = *.apps.<cluster-domain>  # <- check this
+issuer=CN = selfsigned-root-ca        # <- check this
+notAfter=Apr  2 13:15:59 2024 GMT
+```
+
+2. 
+```shell
+curl -v --cacert ./ca.crt https://console-openshift-console.apps.<cluster-domain>
+```
+
+Sample result:
+```shell
+*   Trying 20.111.222.333:443...
+* Connected to console-openshift-console.apps.<cluster-domain> (20.111.222.333) port 443 (#0)
+...
+*  CAfile: ./ca.crt
+...
+* Server certificate:
+*  subject: CN=*.apps.<cluster-domain>
+*  start date: Jan  3 13:15:59 2024 GMT
+*  expire date: Apr  2 13:15:59 2024 GMT
+...
+*  issuer: CN=selfsigned-root-ca
+*  SSL certificate verify ok.      # <- check this
+...
+```
+Verify SSL authentication, cross-check both the `CN` (common name) and certificate start and expiration details. Ensure alignment with expectations, and rest assured, cert-manager will handle automatic certificate renewal :repeat: :dart: 
+
+
+## Wrap Up
+
+In this article, I walked you through the intricacies of managing certificates on OpenShift, emphasizing its compatibility across diverse architectures with the enhanced support of the cert-manager Operator in `v1.13.0`.
+
+From deploying an OpenShift cluster on IBM Power Virtual Server (VS) to installing the cert-manager Operator, we explored a seamless end-to-end process. The practical side covered creating a Self-Signed CA Issuer, issuing a root certificate, and utilizing cert-manager for managing certificates in the default ingress controller for secure applications.
+
+Awesome! I hope you found this guide both informative and actionable. If you have any questions or insights, feel free to share them in the comments. Happy coding! :rocket: :star2: 
+
+And as promised, here are a few useful links for further reference:
 
 ## Useful links
+- https://docs.openshift.com/container-platform/4.14/security/cert_manager_operator/index.html
+- https://cert-manager.io/docs/
+- https://docs.openshift.com/container-platform/4.14/installing/installing_ibm_z/preparing-to-install-on-ibm-z.html
 - https://docs.openshift.com/container-platform/4.14/installing/installing_ibm_powervs/preparing-to-install-on-ibm-power-vs.html
+- https://docs.openshift.com/container-platform/4.14/installing/index.html
+- https://docs.openshift.com/container-platform/4.14/networking/ingress-operator.html#configuring-ingress-controller
