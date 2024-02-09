@@ -1,5 +1,5 @@
 - [Manage certificates on OpenShift running on IBM Z®, IBM Power® and ARM64 architectures.](#manage-certificates-on-openshift-running-on-ibm-z-ibm-power-and-arm64-architectures)
-  - [Intoduction](#intoduction)
+  - [Introduction](#introduction)
   - [Multi-architecture container image](#multi-architecture-container-image)
     - [What is it?](#what-is-it)
     - [How to create?](#how-to-create)
@@ -8,12 +8,12 @@
     - [Create IBM Power VS workspace](#create-ibm-power-vs-workspace)
     - [Download ccoctl, installer and oc utilities](#download-ccoctl-installer-and-oc-utilities)
     - [Create cluster installation manifests](#create-cluster-installation-manifests)
-    - [Identity and access management](#identity-and-access-management)
+    - [Provide IAM roles](#provide-iam-roles)
     - [Deploy the cluster](#deploy-the-cluster)
   - [Install cert-manager on IBM Power VS](#install-cert-manager-on-ibm-power-vs)
     - [Review OLM resources](#review-olm-resources)
     - [Operator Installation with CLI](#operator-installation-with-cli)
-  - [Certificate Management](#certificate-management)
+  - [Certificate Management:Example](#certificate-managementexample)
     - [Create Self-signed CA Issuer](#create-self-signed-ca-issuer)
     - [Issue Certificate](#issue-certificate)
     - [Change ingress controller's default certificate](#change-ingress-controllers-default-certificate)
@@ -26,14 +26,14 @@
 # Manage certificates on OpenShift running on IBM Z®, IBM Power® and ARM64 architectures.
 
 
-## Intoduction
+## Introduction
 
 Kubernetes thrives on secure communication, but manually managing SSL/TLS certificates is a tangled mess and error-prone process, leading to outages, security vulnerabilities, and operational overhead.
 
 
 The [cert-manager](https://docs.openshift.com/container-platform/4.14/security/cert_manager_operator/index.html) Operator for Red Hat OpenShift provides a secure and efficient solution for TLS certificate management in OpenShift Container Platform clusters, by introducing certificates and certificate issuers as primary resources in the Kubernetes API.  This _**'certificates as a service'**_ model seamlessly integrates with external certificate authorities, automating the entire certificate lifecycle, from provisioning to renewal, ensuring validity and timely updates.
 
-Now, with the latest update, the cert-manager Operator for Red Hat OpenShift `v1.13.0` has undergone an expansion in its scope. Formerly confined to supporting solely on `AMD64` architecture, it now includes extended support for managing certificates on OpenShift across multiple architectures, including IBM Z® (`s390x`), IBM Power® (`ppc64le`), and `ARM64`. 
+Now, with the latest update, the cert-manager Operator for Red Hat OpenShift 1.13.0 has undergone an expansion in its scope. Formerly confined to supporting solely on `AMD64` architecture, it now includes extended support for managing certificates on OpenShift across multiple architectures, including IBM Z® (`s390x`), IBM Power® (`ppc64le`), and `ARM64`. 
 
 <p align="center">
   <img src="assets/002-multi-arch+openshift+cm.png" alt>
@@ -58,10 +58,10 @@ By using this approach, developers can deploy applications on a variety of hardw
 
 
 ### How to create?
-Now, creating a multi-arch container image has become straightforward using both [Docker](https://docs.docker.com/build/building/multi-platform/) and [Podman](https://docs.podman.io/en/stable/markdown/podman-build.1.html). Like this:
+Now, creating a multi-arch container image has become straightforward using both [Docker](https://docs.docker.com/build/building/multi-platform/) and [Podman](https://docs.podman.io/en/stable/markdown/podman-build.1.html). Here's the command:
 
 ```shell
-docker buildx build \
+$ docker buildx build \
 --platform linux/amd64,linux/arm64 \
 -t <registry>/<image>:<tag> \
 --push .
@@ -81,7 +81,7 @@ To verify whether an image is multi-architecture or not, you can utilize the `do
 Let's check the supported platforms for the cert-manager operator's [bundle image ](https://catalog.redhat.com/software/containers/cert-manager/cert-manager-operator-bundle/61a60be7bfd4a5234d596293?architecture=amd64&image=659c4d0b96dddbdb901bacb2)`v1.13.0-9`
 
 ```shell
-podman manifest inspect registry.redhat.io/cert-manager/cert-manager-operator-bundle:v1.13.0-9 | jq -r '.manifests[].platform' 
+$ podman manifest inspect registry.redhat.io/cert-manager/cert-manager-operator-bundle:v1.13.0-9 | jq -r '.manifests[].platform' 
 ```
 Sample output: 
 ```json
@@ -335,9 +335,9 @@ You will notice several files have been generated within `./cluster-assets` dire
 
 
 
-### Identity and access management
+### Provide IAM roles
 
-Next in the cluster installation process is providing IAM roles for IBM Cloud resources, using the `ccoctl` tool.
+Next in the cluster installation process is providing IAM (identity and access management) roles for IBM Cloud resources, using the `ccoctl` tool.
 
 
 1. Create `cco-assets` directory inside `assets` directory to store `CredentialsRequest` custom resources (CRs)
@@ -401,14 +401,14 @@ Ready to get things rolling?
 
 1. Export `KUBECONFIG` or use `oc login` to access your cluster. 
 ```shell
-export KUBECONFIG=<path-to-kubeconfig>
+$ export KUBECONFIG=<path-to-kubeconfig>
 ```
 ### Review OLM resources
 
 1. In OpenShift, a Catalog Source serves as a carefully curated repository of operators, akin to an app store. It provides a comprehensive listing of operators along with their descriptions, versions, and compatibility information. By default, the `redhat-operators` Catalog Source is included with the cluster in `openshift-marketplace` namespace, featuring the presence of the `openshift-cert-manager-operator`.
 
 ```shell
-oc get catalogsources redhat-operators -n openshift-marketplace
+$ oc get catalogsources redhat-operators -n openshift-marketplace
 ```
 
 
@@ -416,12 +416,12 @@ oc get catalogsources redhat-operators -n openshift-marketplace
 
 
 ```shell
-oc describe packagemanifest openshift-cert-manager-operator -n openshift-marketplace
+$ oc describe packagemanifest openshift-cert-manager-operator -n openshift-marketplace
 ```
 
 Have you observed the labels? They provide information about the supported architectures and the source catalog.
 ```shell
-oc get packagemanifest openshift-cert-manager-operator -n openshift-marketplace -o json | jq .metadata.labels
+$ oc get packagemanifest openshift-cert-manager-operator -n openshift-marketplace -o json | jq .metadata.labels
 ```
 
 ```json
@@ -441,8 +441,8 @@ oc get packagemanifest openshift-cert-manager-operator -n openshift-marketplace 
 ```
 
 Take a look at the defaultChannel.
-```
-oc get packagemanifest openshift-cert-manager-operator -n openshift-marketplace -o json | jq .status.defaultChannel
+```shell
+$ oc get packagemanifest openshift-cert-manager-operator -n openshift-marketplace -o json | jq .status.defaultChannel
 ```
 
 ```json
@@ -456,14 +456,14 @@ Make a note of these informations as we'll use them when creating the `Subscript
 1. Create a new project `cert-manager-operator`. This will be the operator namespace.
 
 ```shell
-oc new-project cert-manager-operator
+$ oc new-project cert-manager-operator
 ```
 
 2. Next, we'll create the `OperatorGroup` to help OLM specify the target namespaces where the operator should be deployed and watch for it's resources.
 
 
 ```shell
-oc create -f - <<EOF 
+$ oc create -f - <<EOF 
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -478,7 +478,7 @@ EOF
 3. Finally, create a `Subscription` to install your operator. Ensure that the information in the `spec` is sourced from the `PackageManifest` as needed.
  
 ```shell
-oc create -f - <<EOF
+$ oc create -f - <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -526,7 +526,7 @@ Well done! :clap:  The `openshift-cert-manager-operator` is now successfully ins
 
 
 
-## Certificate Management
+## Certificate Management:Example
 
 Having successfully installed the cert-manager Operator for Red Hat OpenShift, let's explore a practical scenario to leverage its capabilities.
 
@@ -608,8 +608,8 @@ The relevant certificate will be created and stored in the `ingress-wildcard-tls
 
 Next, we'll update the `defaultCertificate` reference in the default `IngressController` CR by patching it to point to the new certificate secret.
 
-```shell!
-oc patch ingresscontroller.operator default \
+```shell
+$ oc patch ingresscontroller.operator default \
 --type=merge -p \
 '{"spec":{"defaultCertificate": {"name": "ingress-wildcard-tls"}}}' \
 -n openshift-ingress-operator
@@ -627,14 +627,14 @@ Now, lets do the replacement
 
 1. Extract the `ca.crt` from the `ingress-wildcard-tls` secret.
 ```shell
-oc extract secret/ingress-wildcard-tls -n openshift-ingress
+$ oc extract secret/ingress-wildcard-tls -n openshift-ingress
 ```
 
 
 2. Generate a config-map to encapsulate the root CA certificate utilized for signing the wildcard certificate.
 
 ```shell
-oc create configmap issued-ca-bundle \
+$ oc create configmap issued-ca-bundle \
 --from-file=ca-bundle.crt=./ca.crt \
 -n openshift-config
 ```
@@ -642,17 +642,17 @@ oc create configmap issued-ca-bundle \
 3. Use the created config map and update the proxy configuration across the entire cluster.
 
 ```shell
-oc patch proxy cluster \
- --type=merge \
- --patch='{"spec":{"trustedCA":{"name":"issued-ca-bundle"}}}'
+$ oc patch proxy cluster \
+--type=merge \
+--patch='{"spec":{"trustedCA":{"name":"issued-ca-bundle"}}}'
 ```
 
 
 Wait a bit for the changes to propagate through your cluster, and ensure its health using fundamental commands like:
 ```shell
-oc get nodes
-oc get pods --all-namespaces
-oc get clusteroperators
+$ oc get nodes
+$ oc get pods --all-namespaces
+$ oc get clusteroperators
 ```
 
 Fantastic! Your cluster is now fully configured to fortify all connections with the bespoke custom certificate.
@@ -665,7 +665,7 @@ Now, verify if your connections are indeed being served by the certificates.
 
 1. 
 ```shell
-echo Q | openssl s_client -connect console-openshift-console.apps.<cluster-domain>:443 -showcerts 2>/dev/null | openssl x509 -noout -subject -issuer -enddate
+$ echo Q | openssl s_client -connect console-openshift-console.apps.<cluster-domain>:443 -showcerts 2>/dev/null | openssl x509 -noout -subject -issuer -enddate
 ```
 
 Sample result:
@@ -677,7 +677,7 @@ notAfter=Apr  2 13:15:59 2024 GMT
 
 2. 
 ```shell
-curl -v --cacert ./ca.crt https://console-openshift-console.apps.<cluster-domain>
+$ curl -v --cacert ./ca.crt https://console-openshift-console.apps.<cluster-domain>
 ```
 
 Sample result:
