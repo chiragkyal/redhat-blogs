@@ -538,6 +538,11 @@ In this use case, we aim to integrate cert-manager with the cluster ingress oper
 
 Notably, you have the flexibility to employ other supported issuer types such as ACME, Vault, and Venafi if needed.
 
+<p align="center">
+  <img src="assets/cert-manager-workflow.png" alt>
+  <em>Figure 4: cert manager Operator workflow with ingress controller.</em>
+</p>
+
 ### Create Self-signed CA Issuer
 The initial step involves configuring either an `Issuer` or `ClusterIssuer`. These entities function as resources that represent certificate authorities responsible for signing certificates when they receive signing requests. `Issuer` is specific to a namespace, while `ClusterIssuer` operate at the cluster level.
 
@@ -661,10 +666,6 @@ $ oc get clusteroperators
 
 Fantastic! Your cluster is now fully configured to fortify all connections with the bespoke custom certificate.
 
-<p align="center">
-  <img src="assets/cert-manager-workflow.png" alt>
-  <em>Figure 4: cert manager Operator workflow with ingress controller.</em>
-</p>
 
 
 ### See it in action
