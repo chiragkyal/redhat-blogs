@@ -37,7 +37,7 @@ Now, with the latest update, the cert-manager Operator for Red Hat OpenShift 1.1
 
 <p align="center">
   <img src="assets/002-multi-arch+openshift+cm.png" alt>
-  <em>figure_caption</em>
+  <em>Figure 1: cert-manager Operator for Red Hat OpenShift's robust support for multiple architectures.</em>
 </p>
 
 
@@ -71,7 +71,7 @@ That's all it takes. With a single command, you'll have image capable of running
 
 <p align="center">
   <img src="assets/001-multi-arch-image-generation.png" alt>
-  <em>figure_caption</em>
+  <em>Figure 2: Visual illustration demonstrating the process of generating a multi-architecture image with Docker Buildx.</em>
 </p>
 
 ### How to verify?
@@ -524,7 +524,10 @@ cert-manager-webhook-9bc98cbdd-f972x       1/1     Running   0          7m40s
 
 Well done! :clap:  The `openshift-cert-manager-operator` is now successfully installed in your cluster, and is prepared to handle certificate services. :rocket: 
 
-
+<p align="center">
+  <img src="assets/cert-manager-deployment.png" alt>
+  <em>Figure 3: cert manager Operator for Red Hat OpenShift deployment steps</em>
+</p>
 
 ## Certificate Management:Example
 
@@ -656,6 +659,11 @@ $ oc get clusteroperators
 ```
 
 Fantastic! Your cluster is now fully configured to fortify all connections with the bespoke custom certificate.
+
+<p align="center">
+  <img src="assets/cert-manager-workflow.png" alt>
+  <em>Figure 4: cert manager Operator workflow with ingress controller.</em>
+</p>
 
 
 ### See it in action
