@@ -397,6 +397,11 @@ Let's kick things up a notch! :computer: :running:
 
 We're now all set to install the cert-manager Operator for Red Hat OpenShift on our cluster. While the [installation documentation ](https://docs.openshift.com/container-platform/4.14/security/cert_manager_operator/cert-manager-operator-install.html) primarily outlines the steps using the OpenShift web console, this article will guide you through the CLI installation, with some [Operator Lifecycle Manager(OLM)](https://olm.operatorframework.io/) explanations. Pick your flavor, and feel free to choose the method that best suits your use case and preferences, as both would lead to the same. :slightly_smiling_face: 
 
+<p align="center">
+  <img src="assets/cert-manager-deployment.png" alt>
+  <em>Figure 3: cert manager Operator for Red Hat OpenShift installation steps</em>
+</p>
+
 Ready to get things rolling?
 
 1. Export `KUBECONFIG` or use `oc login` to access your cluster. 
@@ -524,10 +529,6 @@ cert-manager-webhook-9bc98cbdd-f972x       1/1     Running   0          7m40s
 
 Well done! :clap:  The `openshift-cert-manager-operator` is now successfully installed in your cluster, and is prepared to handle certificate services. :rocket: 
 
-<p align="center">
-  <img src="assets/cert-manager-deployment.png" alt>
-  <em>Figure 3: cert manager Operator for Red Hat OpenShift deployment steps</em>
-</p>
 
 ## Certificate Management:Example
 
