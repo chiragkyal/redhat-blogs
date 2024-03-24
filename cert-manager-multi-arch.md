@@ -1,6 +1,6 @@
 - [Manage certificates on OpenShift running on IBM Z®, IBM Power® and ARM64 architectures.](#manage-certificates-on-openshift-running-on-ibm-z-ibm-power-and-arm64-architectures)
   - [Introduction](#introduction)
-  - [Multi-architecture container image](#multi-architecture-container-image)
+  - [Create Multi-Architecture Images for Cross-Platform Applications](#create-multi-architecture-images-for-cross-platform-applications)
     - [What is it?](#what-is-it)
     - [How to create?](#how-to-create)
     - [How to verify?](#how-to-verify)
@@ -49,34 +49,64 @@ So, let's begin!
 
 
 
-## Multi-architecture container image
+## Create Multi-Architecture Images for Cross-Platform Applications
+
+In the ever-evolving world of technology, the ability to deploy applications seamlessly across multiple platforms is no longer a luxury, but a necessity. As developers, we are often faced with the challenge of ensuring our applications run efficiently, not just on one type of hardware, but on a diverse range of architectures - from x86 servers in a data center, to ARM-based IoT devices, and everything in between. With multi-architecture images we can simplify this process.
 
 ### What is it?
-Multi-architecture container images represent a containerization strategy where a single container image is crafted to run seamlessly across various CPU architectures (e.g. x86, ARM, s390x, RISC-V) and sometimes operating systems (e.g., Linux, Windows). A common tag is used for the image, but the container runtime automatically selects the appropriate variant based on the target platform where you want to run the container, using manifests  that reference individual image variants for different platforms.
+Multi-architecture container images represent a containerization strategy where a reference to a unified container image is crafted to run seamlessly across various CPU architectures (e.g. x86, ARM, s390x, RISC-V) and sometimes operating systems (e.g., Linux, Windows). A common tag is used for the image, but the container runtime automatically selects the appropriate variant based on the target platform where you want to run the container, using manifests  that reference individual image variants for different platforms.
 
 By using this approach, developers can deploy applications on a variety of hardware platforms without the hassle of reconstructing or handling individual images for each architecture, with increased efficiency and flexibility. 
 
 
 ### How to create?
-Now, creating a multi-arch container image has become straightforward using both [Docker](https://docs.docker.com/build/building/multi-platform/) and [Podman](https://docs.podman.io/en/stable/markdown/podman-build.1.html). Here's the command:
+Now, creating a multi-arch container image has become straightforward using [Podman](https://docs.podman.io/en/stable/markdown/podman-build.1.html). It not only allows you to create multi-architecture images but also to run them seamlessly.
 
-```shell
-$ docker buildx build \
---platform linux/amd64,linux/arm64 \
--t <registry>/<image>:<tag> \
---push .
+
+**1. Initialise the Manifest**
+
+The first step is to initialise the manifest file. A manifest file is a type of manifest list that can point to specific image manifests for one or more platforms. You can create a manifest file using the `podman manifest create` command followed by the name of the image.
+
+```sh
+podman manifest create <image>
 ```
 
-That's all it takes. With a single command, you'll have image capable of running on both `amd64` and `arm64`, and that too from a single tag. Isn't that cool? :sunglasses: 
+`<image>` is the name of the image. Replace it with the name you want for your image.
+
+**2. Build the Image and Attach to the Manifest**
+
+Next, you build the image for different platforms and attach them to the manifest list. The `--platform` option allows you to specify the platforms for which you want to build the image.
+
+```sh
+podman build --platform linux/amd64,linux/arm64 --manifest <image> .
+```
+
+In this command, `linux/amd64` and `linux/arm64` are the platforms for which the image is being built. `<image>` is the name of the image, and `.` is your Dockerfile context path.
+
+**3. Publish the Manifest**
+
+Finally, publish the manifest list to a registry. You can do this using the `podman manifest push` command.
+
+```sh
+podman manifest push <image> docker://<registry>/<image>:<tag>
+```
+
+Where, `<image>` is the name of the image, `<registry>` is the name of your registry and `tag` is the image tag.
 
 <p align="center">
   <img src="assets/001-multi-arch-image-generation.png" alt>
   <em>Figure 2: Visual illustration demonstrating the process of generating a multi-architecture image with Docker Buildx.</em>
 </p>
 
+
+That’s all it takes. Using these steps, you’ll have an image capable of running on both `amd64` and `arm64` architectures, and that too from a single tag. This means you can have a single image that works seamlessly across multiple platforms. Isn’t that cool? :sunglasses:
+
+This is the power of multi-architecture images and the flexibility that Podman provides. It simplifies the process of building and deploying containerized applications, making your life as a developer much easier.
+
+
 ### How to verify?
 
-To verify whether an image is multi-architecture or not, you can utilize the `docker|podman manifest inspect` command which provides details about the image, including size, digest, and most importantly, supported platforms.
+To verify whether an image is multi-architecture or not, you can utilize the `podman manifest inspect` command which provides details about the image, including size, digest, and most importantly, supported platforms.
 
 Let's check the supported platforms for the cert-manager operator's [bundle image ](https://catalog.redhat.com/software/containers/cert-manager/cert-manager-operator-bundle/61a60be7bfd4a5234d596293?architecture=amd64&image=659c4d0b96dddbdb901bacb2)`v1.13.0-9`
 
@@ -235,6 +265,8 @@ $ ./openshift-install --help
 ...
 ```
 
+**NOTE:** At the time of writing this, we are using OpenShift Container Platfor v4.14 as stable version.
+
 ### Create cluster installation manifests
 
 **Prerequisites**
@@ -338,6 +370,7 @@ You will notice several files have been generated within `./cluster-assets` dire
 ### Provide IAM roles
 
 Next in the cluster installation process is providing IAM (identity and access management) roles for IBM Cloud resources, using the `ccoctl` tool.
+**NOTE: ** This step is required because at the time of writing, OpenShift on IBM Power VS mandatorily requires `Manual` credentialsMode.
 
 
 1. Create `cco-assets` directory inside `assets` directory to store `CredentialsRequest` custom resources (CRs)
@@ -630,7 +663,7 @@ Once the certificate is replaced, all applications, the web console and CLI, wil
 ### Replace the CA bundle certificate
 
 
-OpenShift's Proxy certificates enable custom Certificate Authorities (CAs) for secure egress connections, through the `trustedCA` field and a dedicated proxy validator in the `openshift-config-managed` namespace. You can refer the [documentation](https://docs.openshift.com/container-platform/4.14/security/certificates/updating-ca-bundle.html) for understanding CA bundle certificate.
+OpenShift's Proxy certificates enable custom Certificate Authorities (CAs) for secure egress connections, through the `trustedCA` field and a dedicated proxy validator in the `openshift-config-managed` namespace. You can refer the [documentation](https://docs.openshift.com/container-platform/4.14/security/certificates/updating-ca-bundle.html) for understanding CA bundle certificate. This step is only necessary when using custom CA to manage the trusted certs inside OpenShift and that Internet CAs like the certs issued online can skip this step.
 
 Now, lets do the replacement
 
