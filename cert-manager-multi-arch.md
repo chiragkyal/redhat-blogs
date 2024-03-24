@@ -1,6 +1,6 @@
 - [Manage certificates on OpenShift running on IBM Z®, IBM Power® and ARM64 architectures.](#manage-certificates-on-openshift-running-on-ibm-z-ibm-power-and-arm64-architectures)
   - [Introduction](#introduction)
-  - [Create Multi-Architecture Images for Cross-Platform Applications](#create-multi-architecture-images-for-cross-platform-applications)
+  - [Explore Multi-Architecture Images for Cross-Platform Applications](#explore-multi-architecture-images-for-cross-platform-applications)
     - [What is it?](#what-is-it)
     - [How to create?](#how-to-create)
     - [How to verify?](#how-to-verify)
@@ -41,7 +41,7 @@ Now, with the latest update, the cert-manager Operator for Red Hat OpenShift 1.1
 </p>
 
 
-In this article, I'll briefly explore multi-arch container images before delving into the process of setting up an OpenShift cluster on IBM Power®. I'll then proceed to the cert-manager Operator installation on Power VS and demonstrate its use in certificate management. 
+In this article, we'll briefly explore multi-arch container images before delving into the process of setting up an OpenShift cluster on IBM Power®. We'll then proceed to the cert-manager Operator installation on Power VS and demonstrate its use in certificate management. 
 
 It's worth noting that comparable steps can be applied to other supported architectures. I've provided links to relevant documents for further reference.
 
@@ -49,7 +49,7 @@ So, let's begin!
 
 
 
-## Create Multi-Architecture Images for Cross-Platform Applications
+## Explore Multi-Architecture Images for Cross-Platform Applications
 
 In the ever-evolving world of technology, the ability to deploy applications seamlessly across multiple platforms is no longer a luxury, but a necessity. As developers, we are often faced with the challenge of ensuring our applications run efficiently, not just on one type of hardware, but on a diverse range of architectures - from x86 servers in a data center, to ARM-based IoT devices, and everything in between. With multi-architecture images we can simplify this process.
 
@@ -95,7 +95,7 @@ Where, `<image>` is the name of the image, `<registry>` is the name of your regi
 
 <p align="center">
   <img src="assets/001-multi-arch-image-generation.png" alt>
-  <em>Figure 2: Visual illustration demonstrating the process of generating a multi-architecture image with Docker Buildx.</em>
+  <em>Figure 2: Visual illustration demonstrating the process of generating a multi-architecture image with Podman.</em>
 </p>
 
 
